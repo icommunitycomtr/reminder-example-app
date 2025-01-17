@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  HomeViewController.swift
 //  Reminder
 //
 //  Created by Mert Ozseven on 16.01.2025.
@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class HomeViewController: UIViewController {
 
     // MARK: - Properties
 
@@ -19,6 +19,7 @@ class ViewController: UIViewController {
 
     // MARK: - Private Methods
     private func configureView() {
+        view.backgroundColor = .systemBackground
         addViews()
         configureLayout()
     }
@@ -28,8 +29,6 @@ class ViewController: UIViewController {
     }
 
     private func configureLayout() {
-
+        
     }
-
 }
-

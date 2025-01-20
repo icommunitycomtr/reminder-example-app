@@ -7,7 +7,7 @@
 
 import UIKit
 
-class CreateTaskView: UIView {
+final class CreateTaskViewController: UIViewController {
 
     
 

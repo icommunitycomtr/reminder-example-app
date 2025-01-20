@@ -39,6 +39,16 @@ extension UIView {
     ///   - aspectRatio: Aspect ratio (width divided by height). Overrides width and height if specified. Defaults to `nil`.
     ///   - priority: Priority for constraints. Defaults to `.required`.
     ///
+    /// - Example:
+    /// ```
+    /// view.setupAnchors(
+    ///    top: view.topAnchor,
+    ///    paddingTop: 16,
+    ///    leading: view.leadingAnchor,
+    ///    paddingLeading: 16,
+    ///    trailing: view.trailingAnchor,
+    ///    paddingTrailing: 16
+    /// ```
     func setupAnchors(
         top: NSLayoutYAxisAnchor? = nil,
         paddingTop: CGFloat = 0,
@@ -55,6 +65,8 @@ extension UIView {
         paddingCenterY: CGFloat = 0,
         width: CGFloat = 0,
         height: CGFloat = 0,
+        minWidth: CGFloat = 0,
+        minHeight: CGFloat = 0,
         dynamicWidth: NSLayoutDimension? = nil,
         dynamicHeight: NSLayoutDimension? = nil,
         aspectRatio: CGFloat? = nil,
@@ -114,6 +126,18 @@ extension UIView {
             constraint.isActive = true
         }
 
+        if minWidth != 0 {
+            let constraint = widthAnchor.constraint(greaterThanOrEqualToConstant: minWidth)
+            constraint.priority = priority
+            constraint.isActive = true
+        }
+
+        if minHeight != 0 {
+            let constraint = heightAnchor.constraint(greaterThanOrEqualToConstant: minHeight)
+            constraint.priority = priority
+            constraint.isActive = true
+        }
+
         if let dynamicWidth = dynamicWidth {
             let constraint = widthAnchor.constraint(equalTo: dynamicWidth)
             constraint.priority = priority
@@ -132,5 +156,4 @@ extension UIView {
             constraint.isActive = true
         }
     }
-
 }

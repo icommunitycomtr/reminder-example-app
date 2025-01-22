@@ -8,8 +8,9 @@
 import Foundation
 
 struct Reminder {
-    let title: String
-    let date: Date
-    let completedDate: Date?
-    let isCompleted: Bool
+    var id = UUID().uuidString
+    var title: String
+    var date: Date
+    var completedDate: Date?
+    var isCompleted: Bool
 }

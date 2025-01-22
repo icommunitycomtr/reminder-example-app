@@ -37,9 +37,9 @@ final class HomeTopView: UIView {
 
     private lazy var greetingLabel: UILabel = {
         let label = UILabel()
-        label.text = "\(partOfDay),\n\(name)"
+        label.text = "\(partOfDay)\n\(name)"
         label.textAlignment = .natural
-        label.font = .preferredFont(forTextStyle: .largeTitle)
+        label.font = .systemFont(ofSize: 32, weight: .bold)
         label.adjustsFontSizeToFitWidth = true
         label.minimumScaleFactor = 0.5
         label.textColor = .label
@@ -91,7 +91,7 @@ private extension HomeTopView {
         self.setupAnchors(width: UIScreen.main.bounds.width)
         greetingLabel.setupAnchors(
             top: topAnchor,
-            bottom: bottomAnchor,
+            bottom: bottomAnchor, paddingBottom: 8,
             leading: leadingAnchor,
             trailing: calendarImageView.leadingAnchor,
             paddingTrailing: 24

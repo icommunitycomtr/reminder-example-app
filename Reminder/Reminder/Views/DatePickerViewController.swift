@@ -18,6 +18,7 @@ class DatePickerViewController: UIViewController {
         let picker = UIDatePicker()
         picker.datePickerMode = pickerMode
         picker.preferredDatePickerStyle = pickerStyle
+        picker.tintColor = .label
         return picker
     }()
 

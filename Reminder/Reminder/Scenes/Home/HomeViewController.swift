@@ -7,6 +7,11 @@
 
 import UIKit
 
+protocol HomeViewModelOutputProtocol: AnyObject {
+    func updateRow(from oldIndex: Int, to newIndex: Int)
+    func reloadData()
+}
+
 final class HomeViewController: UIViewController {
 
     // MARK: Properties
@@ -26,7 +31,7 @@ final class HomeViewController: UIViewController {
         tableView.register(ReminderCell.self, forCellReuseIdentifier: ReminderCell.identifier)
         tableView.separatorStyle = .none
         tableView.backgroundColor = .systemBackground
-        tableView.estimatedRowHeight = 80
+        tableView.estimatedRowHeight = 1
         tableView.rowHeight = UITableView.automaticDimension
         return tableView
     }()
@@ -48,6 +53,7 @@ final class HomeViewController: UIViewController {
         super.viewDidLoad()
         configureView()
         topView.delegate = self
+        viewModel.outputDelegate = self
     }
 
     override func viewDidLayoutSubviews() {
@@ -85,6 +91,28 @@ private extension HomeViewController {
     }
 }
 
+
+// MARK: - HomeViewModelOutputProtocol
+
+extension HomeViewController: HomeViewModelOutputProtocol {
+    func updateRow(from oldIndex: Int, to newIndex: Int) {
+        reminderTableView.performBatchUpdates(
+            {
+                reminderTableView.moveRow(
+                    at: IndexPath(row: oldIndex, section: 0),
+                    to: IndexPath(row: newIndex, section: 0)
+                )
+            },
+            completion: { _ in
+            self.reloadData()
+        })
+    }
+
+    func reloadData() {
+        self.reminderTableView.reloadData()
+    }
+}
+
 // MARK: - UITableViewDataSource
 
 extension HomeViewController: UITableViewDataSource {
@@ -96,7 +124,6 @@ extension HomeViewController: UITableViewDataSource {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: ReminderCell.identifier, for: indexPath) as? ReminderCell else {
             fatalError("Unable to dequeue ReminderCell")
         }
-
         cell.configure(with: viewModel.reminders[indexPath.row])
         return cell
     }
@@ -107,6 +134,7 @@ extension HomeViewController: UITableViewDataSource {
 extension HomeViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        viewModel.inputDelegate?.toggleReminder(at: indexPath.row)
     }
 }
 

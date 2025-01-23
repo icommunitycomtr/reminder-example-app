@@ -21,7 +21,23 @@ final class HomeViewModel {
     private(set) var reminders: [Reminder] = [
         Reminder(title: "Test Reminder 1", date: Date(), completedDate: nil, isCompleted: false),
         Reminder(title: "Test Reminder 2\nWith multiple lines\nof text", date: Date(), completedDate: Date(), isCompleted: false),
-        Reminder(title: "Test Reminder 3", date: Date(), completedDate: nil, isCompleted: false)
+        Reminder(title: "Test Reminder 3", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 4", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 5", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 6", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 7", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 8", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 9", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 10", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 11", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 12", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 13", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 14", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 15", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 16", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 17", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 18", date: Date(), completedDate: nil, isCompleted: false),
+        Reminder(title: "Test Reminder 19", date: Date(), completedDate: nil, isCompleted: false),
     ]
 
     init() {
@@ -33,7 +49,7 @@ final class HomeViewModel {
     private func sortReminders() {
         reminders = reminders.sorted {
             if $0.isCompleted != $1.isCompleted {
-                return !$0.isCompleted // Uncompleted first
+                return $0.isCompleted // Uncompleted first
             }
             return $0.date > $1.date // Closest to farthest
         }.reversed()

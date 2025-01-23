@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 protocol HomeTopViewDelegate: AnyObject {
     func didTapCalendar()
@@ -77,6 +78,7 @@ final class HomeTopView: UIView {
 private extension HomeTopView {
     private func configureView() {
         backgroundColor = .systemBackground
+        directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0)
         addViews()
         configureLayout()
         setupActions()
@@ -88,16 +90,15 @@ private extension HomeTopView {
     }
 
     private func configureLayout() {
-        self.setupAnchors(width: UIScreen.main.bounds.width)
         greetingLabel.setupAnchors(
-            top: topAnchor,
-            bottom: bottomAnchor, paddingBottom: 8,
-            leading: leadingAnchor,
+            top: layoutMarginsGuide.topAnchor,
+            bottom: layoutMarginsGuide.bottomAnchor,
+            leading: layoutMarginsGuide.leadingAnchor,
             trailing: calendarImageView.leadingAnchor,
             paddingTrailing: 24
         )
         calendarImageView.setupAnchors(
-            trailing: trailingAnchor,
+            trailing: layoutMarginsGuide.trailingAnchor,
             centerY: centerYAnchor,
             width: 54,
             height: 54

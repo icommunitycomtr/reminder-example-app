@@ -68,19 +68,13 @@ class ReminderCell: UITableViewCell {
         return label
     }()
 
-    private lazy var checkmarkImageView: UIImageView = {
+    private let checkmarkImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: "circlebadge")
         imageView.tintColor = .label
         imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
         imageView.isUserInteractionEnabled = true
-        imageView.addGestureRecognizer(
-            UITapGestureRecognizer(
-                target: self,
-                action: #selector(checkmarkTapped)
-            )
-        )
 
         return imageView
     }()
@@ -137,8 +131,8 @@ private extension ReminderCell {
 
     func configureLayout() {
         containerView.setupAnchors(
-            top: contentView.topAnchor, paddingTop: 8,
-            bottom: contentView.bottomAnchor,
+            top: contentView.topAnchor,
+            bottom: contentView.bottomAnchor, paddingBottom: 8,
             leading: contentView.leadingAnchor,
             trailing: contentView.trailingAnchor
         )
@@ -160,6 +154,7 @@ private extension ReminderCell {
         guard let reminder = reminder else { return }
 
         if reminder.isCompleted {
+
             UIView.animate(withDuration: 0.001, animations: {
                 self.completedLabel.isHidden = false
                 self.completedLabel.text = self.completedText
@@ -174,6 +169,7 @@ private extension ReminderCell {
             }) { _ in
                 self.updateLayout()
             }
+
         } else {
             UIView.animate(withDuration: 0.001, animations: {
                 self.completedLabel.isHidden = true
@@ -193,21 +189,6 @@ private extension ReminderCell {
     func updateLayout() {
         self.setNeedsLayout()
         self.layoutIfNeeded()
-
-        if let tableView = self.superview as? UITableView {
-            tableView.beginUpdates()
-            tableView.endUpdates()
-        }
-    }
-}
-
-// MARK: - Objective Methods
-private extension ReminderCell {
-    @objc func checkmarkTapped() {
-        guard var reminder = reminder else { return }
-        reminder.isCompleted.toggle()
-        self.reminder = reminder
-        checkIsCompleted()
     }
 }
 

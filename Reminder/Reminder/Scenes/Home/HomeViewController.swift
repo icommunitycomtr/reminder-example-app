@@ -30,10 +30,24 @@ final class HomeViewController: UIViewController {
         tableView.dataSource = self
         tableView.register(ReminderCell.self, forCellReuseIdentifier: ReminderCell.identifier)
         tableView.separatorStyle = .none
+        tableView.showsVerticalScrollIndicator = false
         tableView.backgroundColor = .systemBackground
         tableView.estimatedRowHeight = 1
         tableView.rowHeight = UITableView.automaticDimension
         return tableView
+    }()
+    private let addButton: UIImageView = {
+        let imageView = UIImageView()
+        let config = UIImage.SymbolConfiguration(pointSize: 56, weight: .regular)
+        let image = UIImage(systemName: "plus.circle.fill", withConfiguration: config)
+        imageView.image = image
+        imageView.tintColor = .label
+        imageView.backgroundColor = .systemBackground
+        imageView.layer.cornerRadius = 28
+        imageView.contentMode = .center
+        imageView.isUserInteractionEnabled = true
+
+        return imageView
     }()
 
     // MARK: Inits
@@ -67,6 +81,7 @@ final class HomeViewController: UIViewController {
 private extension HomeViewController {
     func configureView() {
         view.backgroundColor = .systemBackground
+        navigationController?.navigationBar.isHidden = true
         addViews()
         configureLayout()
         setupTableHeaderView()
@@ -74,6 +89,7 @@ private extension HomeViewController {
 
     func addViews() {
         view.addSubview(reminderTableView)
+        view.addSubview(addButton)
     }
 
     func configureLayout() {
@@ -82,6 +98,12 @@ private extension HomeViewController {
             bottom: view.bottomAnchor,
             leading: view.layoutMarginsGuide.leadingAnchor,
             trailing: view.layoutMarginsGuide.trailingAnchor
+        )
+        addButton.setupAnchors(
+            bottom: view.safeAreaLayoutGuide.bottomAnchor, paddingBottom: 16,
+            trailing: view.layoutMarginsGuide.trailingAnchor, paddingTrailing: 16,
+            width: 56,
+            height: 56
         )
     }
 
@@ -96,16 +118,19 @@ private extension HomeViewController {
 
 extension HomeViewController: HomeViewModelOutputProtocol {
     func updateRow(from oldIndex: Int, to newIndex: Int) {
-        reminderTableView.performBatchUpdates(
-            {
-                reminderTableView.moveRow(
-                    at: IndexPath(row: oldIndex, section: 0),
-                    to: IndexPath(row: newIndex, section: 0)
-                )
-            },
-            completion: { _ in
-            self.reloadData()
-        })
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            reminderTableView.performBatchUpdates(
+                {
+                    self.reminderTableView.moveRow(
+                        at: IndexPath(row: oldIndex, section: 0),
+                        to: IndexPath(row: newIndex, section: 0)
+                    )
+                },
+                completion: { _ in
+                    self.reloadData()
+                })
+        }
     }
 
     func reloadData() {
@@ -133,7 +158,7 @@ extension HomeViewController: UITableViewDataSource {
 
 extension HomeViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
+        tableView.deselectRow(at: indexPath, animated: false)
         viewModel.inputDelegate?.toggleReminder(at: indexPath.row)
     }
 }
@@ -164,5 +189,4 @@ extension HomeViewController: HomeTopViewDelegate {
 
         present(datePickerVC, animated: true, completion: nil)
     }
-
 }

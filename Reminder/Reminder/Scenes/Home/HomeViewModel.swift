@@ -49,10 +49,10 @@ final class HomeViewModel {
     private func sortReminders() {
         reminders = reminders.sorted {
             if $0.isCompleted != $1.isCompleted {
-                return $0.isCompleted // Uncompleted first
+                return $0.isCompleted
             }
-            return $0.date > $1.date // Closest to farthest
-        }.reversed()
+            return $0.date < $1.date
+        }
     }
 }
 

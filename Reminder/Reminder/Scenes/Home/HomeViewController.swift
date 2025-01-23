@@ -119,19 +119,16 @@ private extension HomeViewController {
 
 extension HomeViewController: HomeViewModelOutputProtocol {
     func updateRow(from oldIndex: Int, to newIndex: Int) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            reminderTableView.performBatchUpdates(
-                {
-                    self.reminderTableView.moveRow(
-                        at: IndexPath(row: oldIndex, section: 0),
-                        to: IndexPath(row: newIndex, section: 0)
-                    )
-                },
-                completion: { _ in
-                    self.reloadData()
-                })
-        }
+        reminderTableView.performBatchUpdates(
+            {
+                self.reminderTableView.moveRow(
+                    at: IndexPath(row: oldIndex, section: 0),
+                    to: IndexPath(row: newIndex, section: 0)
+                )
+            },
+            completion: { _ in
+                self.reloadData()
+            })
     }
 
     func reloadData() {

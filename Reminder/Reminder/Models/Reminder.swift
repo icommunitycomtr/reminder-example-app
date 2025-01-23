@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Reminder {
+struct Reminder: Codable {
     var id = UUID().uuidString
     var title: String
     var date: Date

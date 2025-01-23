@@ -12,8 +12,6 @@ protocol HomeViewModelInputProtocol: AnyObject {
     func filterReminders(for date: Date)
 }
 
-
-
 final class HomeViewModel {
 
     // MARK: - Properties
@@ -83,7 +81,6 @@ extension HomeViewModel {
 // MARK: - HomeViewModelInputProtocol
 
 extension HomeViewModel: HomeViewModelInputProtocol {
-
     /// Toggle a single reminder's `isCompleted` property
     func toggleReminder(at index: Int) {
         let oldIndex = index

@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import SnapKit
 
 protocol HomeTopViewDelegate: AnyObject {
     func didTapCalendar()

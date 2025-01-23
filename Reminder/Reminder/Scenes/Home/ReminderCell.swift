@@ -7,7 +7,7 @@
 
 import UIKit
 
-class ReminderCell: UITableViewCell {
+final class ReminderCell: UITableViewCell {
 
     // MARK: Properties
 
@@ -154,7 +154,6 @@ private extension ReminderCell {
         guard let reminder = reminder else { return }
 
         if reminder.isCompleted {
-
             UIView.animate(withDuration: 0.001, animations: {
                 self.completedLabel.isHidden = false
                 self.completedLabel.text = self.completedText
@@ -190,11 +189,4 @@ private extension ReminderCell {
         self.setNeedsLayout()
         self.layoutIfNeeded()
     }
-}
-
-#Preview {
-    let reminder = Reminder(title: "Title", date: Date(), completedDate: Date(), isCompleted: true)
-    let cell = ReminderCell()
-    cell.configure(with: reminder)
-    return cell
 }

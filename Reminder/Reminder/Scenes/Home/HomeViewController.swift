@@ -21,9 +21,12 @@ final class HomeViewController: UIViewController {
             reminderTableView.reloadData()
         }
     }
+
+    private var selectedDate = Date()
     private var name: String = "Mert"
 
     private lazy var topView = HomeTopView(name: name)
+
     private lazy var reminderTableView: UITableView = {
         let tableView = UITableView()
         tableView.delegate = self
@@ -37,6 +40,7 @@ final class HomeViewController: UIViewController {
         tableView.rowHeight = UITableView.automaticDimension
         return tableView
     }()
+
     private let addButton: UIImageView = {
         let imageView = UIImageView()
         let config = UIImage.SymbolConfiguration(pointSize: 56, weight: .regular)
@@ -47,7 +51,6 @@ final class HomeViewController: UIViewController {
         imageView.layer.cornerRadius = 28
         imageView.contentMode = .center
         imageView.isUserInteractionEnabled = true
-
         return imageView
     }()
 
@@ -66,9 +69,11 @@ final class HomeViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
         configureView()
         topView.delegate = self
         viewModel.outputDelegate = self
+        viewModel.filterReminders(for: selectedDate)
     }
 
     override func viewDidLayoutSubviews() {
@@ -114,25 +119,22 @@ private extension HomeViewController {
     }
 }
 
-
 // MARK: - HomeViewModelOutputProtocol
 
 extension HomeViewController: HomeViewModelOutputProtocol {
     func updateRow(from oldIndex: Int, to newIndex: Int) {
-        reminderTableView.performBatchUpdates(
-            {
-                self.reminderTableView.moveRow(
-                    at: IndexPath(row: oldIndex, section: 0),
-                    to: IndexPath(row: newIndex, section: 0)
-                )
-            },
-            completion: { _ in
-                self.reloadData()
-            })
+        reminderTableView.performBatchUpdates({
+            self.reminderTableView.moveRow(
+                at: IndexPath(row: oldIndex, section: 0),
+                to: IndexPath(row: newIndex, section: 0)
+            )
+        }, completion: { _ in
+            self.reloadData()
+        })
     }
 
     func reloadData() {
-        self.reminderTableView.reloadData()
+        reminderTableView.reloadData()
     }
 }
 
@@ -140,14 +142,20 @@ extension HomeViewController: HomeViewModelOutputProtocol {
 
 extension HomeViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        viewModel.reminders.count
+        return viewModel.reminders.count
     }
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: ReminderCell.identifier, for: indexPath) as? ReminderCell else {
+    func tableView(_ tableView: UITableView,
+                   cellForRowAt indexPath: IndexPath
+    ) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(
+            withIdentifier: ReminderCell.identifier,
+            for: indexPath
+        ) as? ReminderCell else {
             fatalError("Unable to dequeue ReminderCell")
         }
-        cell.configure(with: viewModel.reminders[indexPath.row])
+        let reminder = viewModel.reminders[indexPath.row]
+        cell.configure(with: reminder)
         return cell
     }
 }
@@ -155,14 +163,20 @@ extension HomeViewController: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 
 extension HomeViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView,
+                   didSelectRowAt indexPath: IndexPath
+    ) {
         tableView.deselectRow(at: indexPath, animated: false)
         viewModel.inputDelegate?.toggleReminder(at: indexPath.row)
     }
 
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    func tableView(_ tableView: UITableView,
+                   viewForHeaderInSection section: Int
+    ) -> UIView? {
         if section == 0 {
-            guard let headerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: HomeTopFooterView.identifier) as? HomeTopFooterView else {
+            guard let headerView = tableView.dequeueReusableHeaderFooterView(
+                withIdentifier: HomeTopFooterView.identifier
+            ) as? HomeTopFooterView else {
                 return nil
             }
             return headerView
@@ -174,7 +188,8 @@ extension HomeViewController: UITableViewDelegate {
 // MARK: - UIPopoverPresentationControllerDelegate
 
 extension HomeViewController: UIPopoverPresentationControllerDelegate {
-    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+    func adaptivePresentationStyle(for controller: UIPresentationController)
+    -> UIModalPresentationStyle {
         return .none
     }
 }
@@ -183,9 +198,20 @@ extension HomeViewController: UIPopoverPresentationControllerDelegate {
 
 extension HomeViewController: HomeTopViewDelegate {
     func didTapCalendar() {
-        let datePickerVC = DatePickerViewController(pickerMode: .date, pickerStyle: .inline)
+        let datePickerVC = DatePickerViewController(
+            pickerMode: .date,
+            pickerStyle: .inline,
+            defaultDate: selectedDate
+        )
         datePickerVC.modalPresentationStyle = .popover
         datePickerVC.preferredContentSize = CGSize(width: 320, height: 320)
+
+        datePickerVC.onDateSelected = { [weak self] date in
+            guard let self = self else { return }
+            self.selectedDate = date
+            self.viewModel.filterReminders(for: date)
+            dismiss(animated: true)
+        }
 
         if let popoverPresentationController = datePickerVC.popoverPresentationController {
             popoverPresentationController.sourceView = topView.calendarImageView

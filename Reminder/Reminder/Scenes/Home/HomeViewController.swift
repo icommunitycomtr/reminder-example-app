@@ -29,6 +29,7 @@ final class HomeViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(ReminderCell.self, forCellReuseIdentifier: ReminderCell.identifier)
+        tableView.register(HomeTopFooterView.self, forHeaderFooterViewReuseIdentifier: HomeTopFooterView.identifier)
         tableView.separatorStyle = .none
         tableView.showsVerticalScrollIndicator = false
         tableView.backgroundColor = .systemBackground
@@ -160,6 +161,16 @@ extension HomeViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: false)
         viewModel.inputDelegate?.toggleReminder(at: indexPath.row)
+    }
+
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        if section == 0 {
+            guard let headerView = tableView.dequeueReusableHeaderFooterView(withIdentifier: HomeTopFooterView.identifier) as? HomeTopFooterView else {
+                return nil
+            }
+            return headerView
+        }
+        return nil
     }
 }
 

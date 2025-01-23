@@ -78,7 +78,7 @@ final class HomeTopView: UIView {
 private extension HomeTopView {
     private func configureView() {
         backgroundColor = .systemBackground
-        directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0)
+        directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 8, bottom: 0, trailing: 8)
         addViews()
         configureLayout()
         setupActions()

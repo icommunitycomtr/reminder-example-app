@@ -19,6 +19,12 @@ final class CreateViewController: UIViewController {
     private let viewModel: CreateViewModel
     private var selectedDate: Date
 
+    private let blurEffectView: UIVisualEffectView = {
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let view = UIVisualEffectView(effect: blurEffect)
+        return view
+    }()
+
     private let containerView: UIView = {
         let view = UIView()
         view.backgroundColor = .systemBackground
@@ -53,11 +59,12 @@ final class CreateViewController: UIViewController {
         return label
     }()
 
-    private let dateStackView: UIStackView = {
+    private lazy var dateStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.spacing = 8
         stackView.isUserInteractionEnabled = true
+        stackView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(dateStackViewTapped)))
         return stackView
     }()
 
@@ -75,11 +82,12 @@ final class CreateViewController: UIViewController {
         return label
     }()
 
-    private let hourStackView: UIStackView = {
+    private lazy var hourStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.spacing = 8
         stackView.isUserInteractionEnabled = true
+        stackView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(timeStackViewTapped)))
         return stackView
     }()
 
@@ -105,12 +113,23 @@ final class CreateViewController: UIViewController {
         return textView
     }()
 
-    private let saveButton: UIButton = {
+    private lazy var saveButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Save", for: .normal)
         button.backgroundColor = .label
         button.setTitleColor(.systemBackground, for: .normal)
         button.layer.cornerRadius = 8
+        button.addTarget(self, action: #selector(saveAndDismiss), for: .touchUpInside)
+        return button
+    }()
+
+    private lazy var closeButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.tintColor = .label
+        button.setImage(UIImage(systemName: "multiply"), for: .normal)
+        button.addTarget(self, action: #selector(dismissSelf), for: .touchUpInside)
+        button.imageView?.clipsToBounds = true
+        button.imageView?.contentMode = .scaleAspectFit
         return button
     }()
 
@@ -139,21 +158,16 @@ final class CreateViewController: UIViewController {
 
 private extension CreateViewController {
     func configureView() {
-        view.backgroundColor = .secondarySystemBackground
+        view.backgroundColor = .clear
         reminderTextView.delegate = self
         addViews()
         configureLayout()
         handleTraitChanges()
         view.addDismissKeyboardGesture()
-
-        let dateTapGesture = UITapGestureRecognizer(target: self, action: #selector(dateStackViewTapped))
-        dateStackView.addGestureRecognizer(dateTapGesture)
-
-        let timeTapGesture = UITapGestureRecognizer(target: self, action: #selector(timeStackViewTapped))
-        hourStackView.addGestureRecognizer(timeTapGesture)
     }
 
     func addViews() {
+        view.addSubview(blurEffectView)
         view.addSubview(containerView)
         containerView.addSubview(mainVerticalStackView)
         mainVerticalStackView.addArrangedSubview(newTaskLabel)
@@ -166,9 +180,16 @@ private extension CreateViewController {
         hourStackView.addArrangedSubview(hourLabel)
         containerView.addSubview(reminderTextView)
         containerView.addSubview(saveButton)
+        containerView.addSubview(closeButton)
     }
 
     func configureLayout() {
+        blurEffectView.setupAnchors(
+            top: view.topAnchor,
+            bottom: view.bottomAnchor,
+            leading: view.leadingAnchor,
+            trailing: view.trailingAnchor
+        )
         containerView.setupAnchors(
             leading: view.layoutMarginsGuide.leadingAnchor,
             trailing: view.layoutMarginsGuide.trailingAnchor,
@@ -192,6 +213,12 @@ private extension CreateViewController {
             bottom: containerView.layoutMarginsGuide.bottomAnchor,
             trailing: containerView.layoutMarginsGuide.trailingAnchor,
             width: 64,
+            height: 32
+        )
+        closeButton.setupAnchors(
+            top: containerView.layoutMarginsGuide.topAnchor,
+            trailing: containerView.layoutMarginsGuide.trailingAnchor,
+            width: 32,
             height: 32
         )
     }
@@ -256,6 +283,33 @@ private extension CreateViewController {
             }
         )
     }
+
+    @objc func dismissSelf() {
+        dismiss(animated: true, completion: nil)
+    }
+
+    @objc private func saveAndDismiss() {
+        guard let title = reminderTextView.text,
+              !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            // Show an alert if the title is empty
+            let alert = UIAlertController(
+                title: "Error",
+                message: "Please enter a valid title for the reminder.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+            return
+        }
+
+        viewModel.inputDelegate?.saveReminder(title: title) { [weak self] newReminder in
+            guard let self = self, let reminder = newReminder else {
+                return
+            }
+            NotificationCenter.default.post(name: .didCreateNewReminder, object: reminder)
+            self.dismiss(animated: true)
+        }
+    }
 }
 
 // MARK: - ViewModel Output Delegate
@@ -296,4 +350,8 @@ extension CreateViewController: UIPopoverPresentationControllerDelegate {
     func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
         return .none
     }
+}
+
+#Preview {
+    CreateViewController(initialDate: Date())
 }

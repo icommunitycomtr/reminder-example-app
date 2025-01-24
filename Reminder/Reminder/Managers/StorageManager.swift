@@ -12,7 +12,7 @@ final class StorageManager {
     // MARK: - Properties
 
     private let defaults = UserDefaults.standard
-    private let remindersKey = "com.yourApp.remindersKey"
+    private let remindersKey = "com.mertozseven.Reminder"
 
     // MARK: - Singleton
 

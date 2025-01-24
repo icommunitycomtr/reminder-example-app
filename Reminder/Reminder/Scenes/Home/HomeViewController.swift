@@ -41,7 +41,7 @@ final class HomeViewController: UIViewController {
         return tableView
     }()
 
-    private let addButton: UIImageView = {
+    private lazy var addButton: UIImageView = {
         let imageView = UIImageView()
         let config = UIImage.SymbolConfiguration(pointSize: 56, weight: .regular)
         let image = UIImage(systemName: "plus.circle.fill", withConfiguration: config)
@@ -51,6 +51,7 @@ final class HomeViewController: UIViewController {
         imageView.layer.cornerRadius = 28
         imageView.contentMode = .center
         imageView.isUserInteractionEnabled = true
+        imageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapAddButton)))
         return imageView
     }()
 
@@ -65,6 +66,10 @@ final class HomeViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    deinit {
+        NotificationCenter.default.removeObserver(self, name: .didCreateNewReminder, object: nil)
+    }
+
     // MARK: Lifecycle
 
     override func viewDidLoad() {
@@ -74,6 +79,12 @@ final class HomeViewController: UIViewController {
         topView.delegate = self
         viewModel.outputDelegate = self
         viewModel.filterReminders(for: selectedDate)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleNewReminderNotification(_:)),
+            name: .didCreateNewReminder,
+            object: nil
+        )
     }
 
     override func viewDidLayoutSubviews() {
@@ -119,18 +130,32 @@ private extension HomeViewController {
     }
 }
 
+// MARK: - Objective Methods
+
+private extension HomeViewController {
+    @objc private func didTapAddButton() {
+        let createVC = CreateViewController(initialDate: Date())
+        createVC.modalPresentationStyle = .overFullScreen
+        createVC.modalTransitionStyle = .crossDissolve
+        present(createVC, animated: true, completion: nil)
+    }
+
+    @objc private func handleNewReminderNotification(_ notification: Notification) {
+        guard let reminder = notification.object as? Reminder else { return }
+        viewModel.inputDelegate?.addReminder(reminder)
+        reloadData()
+    }
+}
+
 // MARK: - HomeViewModelOutputProtocol
 
 extension HomeViewController: HomeViewModelOutputProtocol {
     func updateRow(from oldIndex: Int, to newIndex: Int) {
-        reminderTableView.performBatchUpdates({
-            self.reminderTableView.moveRow(
-                at: IndexPath(row: oldIndex, section: 0),
-                to: IndexPath(row: newIndex, section: 0)
-            )
-        }, completion: { _ in
-            self.reloadData()
-        })
+        self.reminderTableView.moveRow(
+            at: IndexPath(row: oldIndex, section: 0),
+            to: IndexPath(row: newIndex, section: 0)
+        )
+        self.reloadData()
     }
 
     func reloadData() {
@@ -205,7 +230,7 @@ extension HomeViewController: HomeTopViewDelegate {
             pickerMode: .date,
             pickerStyle: .inline,
             onDateSelected: { [weak self] date in
-                guard let self = self else { return }
+                guard let self else { return }
                 self.selectedDate = date
                 self.viewModel.filterReminders(for: date)
                 dismiss(animated: true)

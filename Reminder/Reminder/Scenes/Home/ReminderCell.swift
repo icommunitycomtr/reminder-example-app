@@ -14,7 +14,8 @@ final class ReminderCell: UITableViewCell {
     static let identifier = "TaskCell"
     private var reminder: Reminder?
     private var completedText: String {
-        let date = Date()
+        guard let reminder = reminder else { return "" }
+        let date = reminder.date
         let calendar = Calendar.current
         let hour = calendar.component(.hour, from: date)
         let minute = calendar.component(.minute, from: date).description.count == 1 ? "0\(calendar.component(.minute, from: date))" : calendar.component(.minute, from: date).description
@@ -144,35 +145,45 @@ private extension ReminderCell {
             trailing: checkmarkImageView.leadingAnchor, paddingTrailing: 8
         )
     }
-
     func checkIsCompleted() {
         guard let reminder = reminder else { return }
 
         if reminder.isCompleted {
-            UIView.animate(withDuration: 0.001, animations: {
-                self.completedLabel.isHidden = false
-                self.completedLabel.text = self.completedText
+            completedLabel.isHidden = false
+            completedLabel.alpha = 1
 
-                self.completedLabel.alpha = 1
-                self.checkmarkImageView.image = UIImage(systemName: "checkmark.circle.fill")?.withTintColor(.secondaryLabel, renderingMode: .alwaysOriginal)
-                self.titleLabel.textColor = .secondaryLabel
-                self.handleTraitChanges()
-            }) { _ in
-                self.updateLayout()
+            // Format the completedDate (if it exists)
+            if let completedDate = reminder.completedDate {
+                let formatter = DateFormatter()
+                formatter.timeStyle = .short
+                let completedTimeString = formatter.string(from: completedDate)
+                completedLabel.text = "Completed at \(completedTimeString)"
+            } else {
+                // Fallback in case completedDate is nil for some reason
+                completedLabel.text = "Completed"
             }
+
+            checkmarkImageView.image = UIImage(systemName: "checkmark.circle.fill")?
+                .withTintColor(.secondaryLabel, renderingMode: .alwaysOriginal)
+            titleLabel.textColor = .secondaryLabel
 
         } else {
-            UIView.animate(withDuration: 0.001, animations: {
-                self.completedLabel.isHidden = true
-                self.completedLabel.alpha = 0
-                self.checkmarkImageView.image = UIImage(systemName: "circlebadge")
-                self.titleLabel.textColor = .label
-                self.handleTraitChanges()
-            }) { _ in
-                self.updateLayout()
-            }
+            completedLabel.isHidden = true
+            completedLabel.alpha = 0
+
+            checkmarkImageView.image = UIImage(systemName: "circlebadge")
+            titleLabel.textColor = .label
         }
+
+        updateLayout()
     }
+
+    func getCurrentTime() -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter.string(from: Date())
+    }
+
 
     func updateLayout() {
         self.setNeedsLayout()

@@ -14,7 +14,7 @@ protocol HomeViewModelInputProtocol: AnyObject {
 
 final class HomeViewModel {
 
-    // MARK: - Properties
+    // MARK: Properties
 
     private var allReminders: [Reminder] = {
         let calendar = Calendar.current
@@ -48,7 +48,7 @@ final class HomeViewModel {
     weak var inputDelegate: HomeViewModelInputProtocol?
     weak var outputDelegate: HomeViewModelOutputProtocol?
 
-    // MARK: - Init
+    // MARK: Init
     init() {
         self.inputDelegate = self
     }

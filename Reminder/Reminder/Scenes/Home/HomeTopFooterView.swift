@@ -9,6 +9,8 @@ import UIKit
 
 final class HomeTopFooterView: UITableViewHeaderFooterView {
 
+    // MARK: Properties
+
     static let identifier = "ReminderSectionHeader"
 
     private let titleLabel: UILabel = {
@@ -20,6 +22,7 @@ final class HomeTopFooterView: UITableViewHeaderFooterView {
         return label
     }()
 
+    // MARK: Inits
     override init(reuseIdentifier: String?) {
         super.init(reuseIdentifier: reuseIdentifier)
         configureView()
@@ -31,6 +34,7 @@ final class HomeTopFooterView: UITableViewHeaderFooterView {
 
 }
 
+// MARK: - Private Methods
 private extension HomeTopFooterView {
     func configureView() {
         contentView.backgroundColor = .systemBackground

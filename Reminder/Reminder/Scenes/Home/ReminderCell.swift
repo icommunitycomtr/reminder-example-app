@@ -28,8 +28,8 @@ final class ReminderCell: UITableViewCell {
         view.layer.cornerRadius = 8
         view.layer.borderWidth = 1
         view.layer.borderColor = UIColor.dynamicColor(
-            light: .black,
-            dark: .white
+            light: .label,
+            dark: .label
         ).cgColor
         view.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
 
@@ -85,12 +85,6 @@ final class ReminderCell: UITableViewCell {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
 
         configureView()
-        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (self: Self, previousTraitCollection: UITraitCollection) in
-            self.containerView.layer.borderColor = UIColor.dynamicColor(
-                light: .label,
-                dark: .label
-            ).cgColor
-        }
     }
 
     required init?(coder: NSCoder) {
@@ -119,6 +113,7 @@ private extension ReminderCell {
         checkIsCompleted()
         addViews()
         configureLayout()
+        handleTraitChanges()
     }
 
     func addViews() {
@@ -161,10 +156,7 @@ private extension ReminderCell {
                 self.completedLabel.alpha = 1
                 self.checkmarkImageView.image = UIImage(systemName: "checkmark.circle.fill")?.withTintColor(.secondaryLabel, renderingMode: .alwaysOriginal)
                 self.titleLabel.textColor = .secondaryLabel
-                self.containerView.layer.borderColor = UIColor.dynamicColor(
-                    light: .secondaryLabel,
-                    dark: .secondaryLabel
-                ).cgColor
+                self.handleTraitChanges()
             }) { _ in
                 self.updateLayout()
             }
@@ -175,10 +167,7 @@ private extension ReminderCell {
                 self.completedLabel.alpha = 0
                 self.checkmarkImageView.image = UIImage(systemName: "circlebadge")
                 self.titleLabel.textColor = .label
-                self.containerView.layer.borderColor = UIColor.dynamicColor(
-                    light: .label,
-                    dark: .label
-                ).cgColor
+                self.handleTraitChanges()
             }) { _ in
                 self.updateLayout()
             }
@@ -188,5 +177,18 @@ private extension ReminderCell {
     func updateLayout() {
         self.setNeedsLayout()
         self.layoutIfNeeded()
+    }
+
+    func updateBorderColor() {
+        containerView.layer.borderColor = UIColor.dynamicColor(
+            light: .label,
+            dark: .label
+        ).cgColor
+    }
+
+    func handleTraitChanges() {
+        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (self: Self, previousTraitCollection: UITraitCollection) in
+            self.updateBorderColor()
+        }
     }
 }

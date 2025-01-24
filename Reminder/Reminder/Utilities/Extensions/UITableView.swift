@@ -8,6 +8,7 @@
 import UIKit
 
 extension UITableView {
+    /// Resize table header view to fit its content
     func layoutTableHeaderView() {
         guard let headerView = self.tableHeaderView else { return }
 

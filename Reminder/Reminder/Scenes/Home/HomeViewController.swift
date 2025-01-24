@@ -198,29 +198,18 @@ extension HomeViewController: UIPopoverPresentationControllerDelegate {
 
 extension HomeViewController: HomeTopViewDelegate {
     func didTapCalendar() {
-        let datePickerVC = DatePickerViewController(
+        DatePickerManager.shared.presentDatePicker(
+            from: self,
+            sourceView: topView.calendarImageView,
+            initialDate: selectedDate,
             pickerMode: .date,
             pickerStyle: .inline,
-            defaultDate: selectedDate
+            onDateSelected: { [weak self] date in
+                guard let self = self else { return }
+                self.selectedDate = date
+                self.viewModel.filterReminders(for: date)
+                dismiss(animated: true)
+            }
         )
-        datePickerVC.modalPresentationStyle = .popover
-        datePickerVC.preferredContentSize = CGSize(width: 320, height: 320)
-
-        datePickerVC.onDateSelected = { [weak self] date in
-            guard let self = self else { return }
-            self.selectedDate = date
-            self.viewModel.filterReminders(for: date)
-            dismiss(animated: true)
-        }
-
-        if let popoverPresentationController = datePickerVC.popoverPresentationController {
-            popoverPresentationController.sourceView = topView.calendarImageView
-            popoverPresentationController.sourceRect = topView.calendarImageView.bounds
-            popoverPresentationController.permittedArrowDirections = .up
-            popoverPresentationController.delegate = self
-            popoverPresentationController.backgroundColor = .systemBackground
-        }
-
-        present(datePickerVC, animated: true, completion: nil)
     }
 }

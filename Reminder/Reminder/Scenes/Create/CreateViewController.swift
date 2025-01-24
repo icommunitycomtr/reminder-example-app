@@ -231,27 +231,30 @@ private extension CreateViewController {
 
 private extension CreateViewController {
     @objc func dateStackViewTapped() {
-        let datePickerVC = DatePickerViewController(
+        DatePickerManager.shared.presentDatePicker(
+            from: self,
+            sourceView: dateStackView,
+            initialDate: selectedDate,
             pickerMode: .date,
             pickerStyle: .inline,
-            defaultDate: selectedDate
+            onDateSelected: { [weak self] newDate in
+                self?.viewModel.inputDelegate?.updateDate(newDate)
+            }
         )
-        datePickerVC.onDateSelected = { [weak self] newDate in
-            self?.viewModel.inputDelegate?.updateDate(newDate)
-        }
-        presentPopover(datePickerVC, sourceView: dateStackView, width: 320, height: 320)
     }
 
     @objc func timeStackViewTapped() {
-        let timePickerVC = DatePickerViewController(
+        DatePickerManager.shared.presentDatePicker(
+            from: self,
+            sourceView: hourStackView,
+            initialDate: selectedDate,
             pickerMode: .time,
             pickerStyle: .wheels,
-            defaultDate: selectedDate
+            popoverSize: CGSize(width: 160, height: 160),
+            onDateSelected: { [weak self] newTime in
+                self?.viewModel.inputDelegate?.updateTime(newTime)
+            }
         )
-        timePickerVC.onDateSelected = { [weak self] newTime in
-            self?.viewModel.inputDelegate?.updateTime(newTime)
-        }
-        presentPopover(timePickerVC, sourceView: hourStackView, width: 160, height: 160)
     }
 }
 

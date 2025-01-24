@@ -22,9 +22,9 @@ extension String {
     }
 
     static func formattedTime(from date: Date) -> String {
-            let formatter = DateFormatter()
-            formatter.timeStyle = .short
-            formatter.locale = Locale.current
-            return formatter.string(from: date)
-        }
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        formatter.locale = Locale.current
+        return formatter.string(from: date)
+    }
 }

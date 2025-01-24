@@ -12,11 +12,6 @@ protocol CreateViewModelInputProtocol: AnyObject {
     func updateTime(_ time: Date)
 }
 
-protocol CreateViewModelOutputProtocol: AnyObject {
-    func didUpdateDate(_ date: Date)
-    func didUpdateTime(_ time: Date)
-}
-
 final class CreateViewModel {
     weak var inputDelegate: CreateViewModelInputProtocol?
     weak var outputDelegate: CreateViewModelOutputProtocol?

@@ -7,6 +7,11 @@
 
 import UIKit
 
+protocol CreateViewModelOutputProtocol: AnyObject {
+    func didUpdateDate(_ date: Date)
+    func didUpdateTime(_ time: Date)
+}
+
 final class CreateViewController: UIViewController {
 
     // MARK: Properties
@@ -20,6 +25,7 @@ final class CreateViewController: UIViewController {
         view.layer.cornerRadius = 8
         view.layer.borderWidth = 1
         view.layer.borderColor = UIColor.tertiaryLabel.cgColor
+        view.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
         return view
     }()
 
@@ -127,10 +133,12 @@ final class CreateViewController: UIViewController {
         configureView()
         setupViewModelBindings()
     }
+}
 
-    // MARK: Private Methods
+// MARK: - Private Methods
 
-    private func configureView() {
+private extension CreateViewController {
+    func configureView() {
         view.backgroundColor = .secondarySystemBackground
         reminderTextView.delegate = self
         addViews()
@@ -145,7 +153,7 @@ final class CreateViewController: UIViewController {
         hourStackView.addGestureRecognizer(timeTapGesture)
     }
 
-    private func addViews() {
+    func addViews() {
         view.addSubview(containerView)
         containerView.addSubview(mainVerticalStackView)
         mainVerticalStackView.addArrangedSubview(newTaskLabel)
@@ -160,7 +168,7 @@ final class CreateViewController: UIViewController {
         containerView.addSubview(saveButton)
     }
 
-    private func configureLayout() {
+    func configureLayout() {
         containerView.setupAnchors(
             leading: view.layoutMarginsGuide.leadingAnchor,
             trailing: view.layoutMarginsGuide.trailingAnchor,
@@ -188,7 +196,7 @@ final class CreateViewController: UIViewController {
         )
     }
 
-    private func setupViewModelBindings() {
+    func setupViewModelBindings() {
         viewModel.outputDelegate = self
         viewModel.inputDelegate = viewModel
     }
@@ -206,9 +214,23 @@ final class CreateViewController: UIViewController {
         }
     }
 
-    // MARK: Objective-C Methods
+    func presentPopover(_ viewController: UIViewController, sourceView: UIView, width: CGFloat = 320, height: CGFloat = 320) {
+        viewController.modalPresentationStyle = .popover
+        viewController.preferredContentSize = CGSize(width: width, height: height)
+        if let popover = viewController.popoverPresentationController {
+            popover.sourceView = sourceView
+            popover.sourceRect = sourceView.bounds
+            popover.permittedArrowDirections = .up
+            popover.delegate = self
+        }
+        present(viewController, animated: true)
+    }
+}
 
-    @objc private func dateStackViewTapped() {
+// MARK: - Objective Methods
+
+private extension CreateViewController {
+    @objc func dateStackViewTapped() {
         let datePickerVC = DatePickerViewController(
             pickerMode: .date,
             pickerStyle: .inline,
@@ -220,7 +242,7 @@ final class CreateViewController: UIViewController {
         presentPopover(datePickerVC, sourceView: dateStackView, width: 320, height: 320)
     }
 
-    @objc private func timeStackViewTapped() {
+    @objc func timeStackViewTapped() {
         let timePickerVC = DatePickerViewController(
             pickerMode: .time,
             pickerStyle: .wheels,
@@ -230,18 +252,6 @@ final class CreateViewController: UIViewController {
             self?.viewModel.inputDelegate?.updateTime(newTime)
         }
         presentPopover(timePickerVC, sourceView: hourStackView, width: 160, height: 160)
-    }
-
-    private func presentPopover(_ viewController: UIViewController, sourceView: UIView, width: CGFloat = 320, height: CGFloat = 320) {
-        viewController.modalPresentationStyle = .popover
-        viewController.preferredContentSize = CGSize(width: width, height: height)
-        if let popover = viewController.popoverPresentationController {
-            popover.sourceView = sourceView
-            popover.sourceRect = sourceView.bounds
-            popover.permittedArrowDirections = .up
-            popover.delegate = self
-        }
-        present(viewController, animated: true)
     }
 }
 
@@ -283,8 +293,4 @@ extension CreateViewController: UIPopoverPresentationControllerDelegate {
     func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
         return .none
     }
-}
-
-#Preview {
-    CreateViewController(initialDate: Date())
 }

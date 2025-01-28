@@ -14,13 +14,16 @@ protocol CreateViewModelInputProtocol: AnyObject {
 }
 
 final class CreateViewModel {
+    
     // MARK: Properties
+
     weak var inputDelegate: CreateViewModelInputProtocol?
     weak var outputDelegate: CreateViewModelOutputProtocol?
 
     private var selectedDate: Date
 
     // MARK: Init
+
     init(initialDate: Date) {
         self.selectedDate = initialDate
         self.inputDelegate = self

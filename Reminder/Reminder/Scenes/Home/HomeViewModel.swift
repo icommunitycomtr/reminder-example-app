@@ -11,6 +11,7 @@ protocol HomeViewModelInputProtocol: AnyObject {
     func toggleReminder(at index: Int)
     func filterReminders(for date: Date)
     func addReminder(_ reminder: Reminder)
+    func fetchReminders()
 }
 
 final class HomeViewModel {
@@ -19,14 +20,17 @@ final class HomeViewModel {
 
     private var allReminders: [Reminder]
     private(set) var reminders: [Reminder] = []
+    private var currentDate: Date = Date()
+    var dates: [Date] = []
 
     weak var inputDelegate: HomeViewModelInputProtocol?
     weak var outputDelegate: HomeViewModelOutputProtocol?
 
     // MARK: Init
 
-    init(initialReminders: [Reminder]) {
+    init(initialReminders: [Reminder], daysBefore: Int = 30, daysAfter: Int = 30) {
         self.allReminders = initialReminders
+        self.dates = DateManager().generateDates(daysBefore: daysBefore, daysAfter: daysAfter)
         self.inputDelegate = self
     }
 }
@@ -57,24 +61,28 @@ extension HomeViewModel {
     private func persistAllReminders() {
         StorageManager.shared.saveReminders(allReminders)
     }
+
+    func updateFocusedDate(to date: Date) {
+        currentDate = date
+        filterReminders(for: date)
+    }
 }
 
 // MARK: - HomeViewModelInputProtocol
 
 extension HomeViewModel: HomeViewModelInputProtocol {
+    func fetchReminders() {
+        allReminders = StorageManager.shared.fetchReminders()
+    }
 
     func addReminder(_ reminder: Reminder) {
         allReminders.append(reminder)
         persistAllReminders()
 
-        if !reminders.isEmpty, let anyReminderDate = reminders.first?.date {
-            if isSameDay(reminder.date, anyReminderDate) {
-                reminders.append(reminder)
-                sortReminders()
-                outputDelegate?.reloadData()
-            }
-        } else {
-
+        if isSameDay(reminder.date, currentDate) {
+            reminders.append(reminder)
+            sortReminders()
+            outputDelegate?.reloadData()
         }
     }
 
@@ -108,8 +116,11 @@ extension HomeViewModel: HomeViewModelInputProtocol {
     }
 
     func filterReminders(for date: Date) {
-        reminders = allReminders.filter {
-            isSameDay($0.date, date)
+        print("Filtering for date = \(date)")
+        reminders = allReminders.filter { reminder in
+            let sameDay = isSameDay(reminder.date, date)
+            print("   Reminder: \(reminder.title) => \(reminder.date), isSameDay? \(sameDay)")
+            return sameDay
         }
         sortReminders()
         outputDelegate?.reloadData()

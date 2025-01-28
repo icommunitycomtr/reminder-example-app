@@ -10,6 +10,7 @@ import UIKit
 protocol HomeViewModelOutputProtocol: AnyObject {
     func updateRow(from oldIndex: Int, to newIndex: Int)
     func reloadData()
+    func fetchReminders()
 }
 
 final class HomeViewController: UIViewController {
@@ -18,12 +19,32 @@ final class HomeViewController: UIViewController {
 
     private var viewModel: HomeViewModel {
         didSet {
+
             reminderTableView.reloadData()
         }
     }
 
+    private var dates: [Date] { viewModel.dates }
     private var selectedDate = Date()
+    private let dateManager = DateManager()
     private var name: String = "Mert"
+
+    private lazy var dateCollectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.minimumLineSpacing = 0
+        layout.minimumInteritemSpacing = 0
+        layout.itemSize = CGSize(width: UIScreen.main.bounds.width / 5, height: 48)
+
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.register(DateCell.self, forCellWithReuseIdentifier: DateCell.identifier)
+        collectionView.backgroundColor = .systemBackground
+        collectionView.showsHorizontalScrollIndicator = false
+
+        return collectionView
+    }()
 
     private lazy var topView = HomeTopView(name: name)
 
@@ -74,7 +95,8 @@ final class HomeViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        fetchReminders()
         configureView()
         topView.delegate = self
         viewModel.outputDelegate = self
@@ -105,13 +127,20 @@ private extension HomeViewController {
     }
 
     func addViews() {
+        view.addSubview(dateCollectionView)
         view.addSubview(reminderTableView)
         view.addSubview(addButton)
     }
 
     func configureLayout() {
-        reminderTableView.setupAnchors(
+        dateCollectionView.setupAnchors(
             top: view.safeAreaLayoutGuide.topAnchor,
+            leading: view.leadingAnchor,
+            trailing: view.trailingAnchor,
+            height: 48
+        )
+        reminderTableView.setupAnchors(
+            top: dateCollectionView.bottomAnchor,
             bottom: view.bottomAnchor,
             leading: view.layoutMarginsGuide.leadingAnchor,
             trailing: view.layoutMarginsGuide.trailingAnchor
@@ -127,6 +156,17 @@ private extension HomeViewController {
     func setupTableHeaderView() {
         reminderTableView.tableHeaderView = topView
         reminderTableView.layoutTableHeaderView()
+    }
+
+    func configureCollectionView() {
+        if let flowLayout = dateCollectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+            let width = dateCollectionView.bounds.width / 5
+            flowLayout.itemSize = CGSize(width: width, height: dateCollectionView.bounds.height)
+        }
+    }
+
+    func dateString(for index: Int) -> String {
+        return dateManager.formatDate(dates[index])
     }
 }
 
@@ -150,6 +190,10 @@ private extension HomeViewController {
 // MARK: - HomeViewModelOutputProtocol
 
 extension HomeViewController: HomeViewModelOutputProtocol {
+    func fetchReminders() {
+        viewModel.fetchReminders()
+    }
+    
     func updateRow(from oldIndex: Int, to newIndex: Int) {
         self.reminderTableView.moveRow(
             at: IndexPath(row: oldIndex, section: 0),
@@ -236,5 +280,30 @@ extension HomeViewController: HomeTopViewDelegate {
                 dismiss(animated: true)
             }
         )
+    }
+}
+
+// MARK: - UICollectionViewDataSource
+
+extension HomeViewController: UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        dates.count
+    }
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DateCell.identifier, for: indexPath) as? DateCell else {
+            fatalError("Unable to dequeue DateCell")
+        }
+        let dateString = DateManager().formatDate(dates[indexPath.item])
+        cell.configure(with: dateString)
+        return cell
+    }
+}
+
+// MARK: - UICollectionViewDelegate
+
+extension HomeViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
     }
 }

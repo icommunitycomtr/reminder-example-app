@@ -27,15 +27,16 @@ final class DatePickerViewController: UIViewController {
 
     // MARK: Inits
 
-    init(pickerMode: UIDatePicker.Mode,
-             pickerStyle: UIDatePickerStyle,
-             defaultDate: Date
-        ) {
-            self.pickerMode = pickerMode
-            self.pickerStyle = pickerStyle
-            self.initialDate = defaultDate
-            super.init(nibName: nil, bundle: nil)
-        }
+    init(
+        pickerMode: UIDatePicker.Mode,
+        pickerStyle: UIDatePickerStyle,
+        defaultDate: Date
+    ) {
+        self.pickerMode = pickerMode
+        self.pickerStyle = pickerStyle
+        self.initialDate = defaultDate
+        super.init(nibName: nil, bundle: nil)
+    }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")

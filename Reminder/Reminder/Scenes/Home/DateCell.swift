@@ -16,8 +16,6 @@ final class DateCell: UICollectionViewCell {
     let dateLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
-        label.font = .preferredFont(forTextStyle: .headline)
-        label.textColor = .label
         return label
     }()
 

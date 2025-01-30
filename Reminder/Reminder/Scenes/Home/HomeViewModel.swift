@@ -12,6 +12,8 @@ protocol HomeViewModelInputProtocol: AnyObject {
     func filterReminders(for date: Date)
     func addReminder(_ reminder: Reminder)
     func fetchReminders()
+    func updateFocusedDate(to date: Date)
+    func isFocusedItemChanged(for indexPath: IndexPath) -> Bool
 }
 
 final class HomeViewModel {
@@ -22,6 +24,8 @@ final class HomeViewModel {
     private(set) var reminders: [Reminder] = []
     private var currentDate: Date = Date()
     var dates: [Date] = []
+    var focusedItemIndexPath = IndexPath()
+    var todayIndexPath = IndexPath()
 
     weak var inputDelegate: HomeViewModelInputProtocol?
     weak var outputDelegate: HomeViewModelOutputProtocol?
@@ -29,9 +33,10 @@ final class HomeViewModel {
     // MARK: Init
 
     init(initialReminders: [Reminder], daysBefore: Int = 30, daysAfter: Int = 30) {
-        self.allReminders = initialReminders
-        self.dates = DateManager().generateDates(daysBefore: daysBefore, daysAfter: daysAfter)
-        self.inputDelegate = self
+        allReminders = initialReminders
+        dates = DateManager().generateDates(daysBefore: daysBefore, daysAfter: daysAfter)
+        setTodaysIndex()
+        inputDelegate = self
     }
 }
 
@@ -42,7 +47,7 @@ extension HomeViewModel {
     /// - Incomplete tasks first
     /// - Then completed tasks
     /// - Within each group, sort by date ascending
-    private func sortReminders() {
+    func sortReminders() {
         reminders = reminders.sorted {
             if $0.isCompleted != $1.isCompleted {
                 return $0.isCompleted == false
@@ -52,19 +57,29 @@ extension HomeViewModel {
     }
 
     /// Check if two reminders happen on the same day
-    private func isSameDay(_ date1: Date, _ date2: Date) -> Bool {
+    func isSameDay(_ date1: Date, _ date2: Date) -> Bool {
         let calendar = Calendar.current
         return calendar.isDate(date1, inSameDayAs: date2)
     }
 
     /// Save the updated `allReminders` array to UserDefaults
-    private func persistAllReminders() {
+    func persistAllReminders() {
         StorageManager.shared.saveReminders(allReminders)
     }
 
     func updateFocusedDate(to date: Date) {
         currentDate = date
         filterReminders(for: date)
+    }
+
+    func setTodaysIndex() {
+        if let todayIndex = dates.firstIndex(where: { DateManager().isSameDay($0, Date()) }) {
+            todayIndexPath = IndexPath(item: todayIndex, section: 0)
+            focusedItemIndexPath = todayIndexPath
+        } else {
+            todayIndexPath = IndexPath(item: dates.count / 2, section: 0)
+            focusedItemIndexPath = todayIndexPath
+        }
     }
 }
 
@@ -116,13 +131,23 @@ extension HomeViewModel: HomeViewModelInputProtocol {
     }
 
     func filterReminders(for date: Date) {
-        print("Filtering for date = \(date)")
         reminders = allReminders.filter { reminder in
             let sameDay = isSameDay(reminder.date, date)
-            print("   Reminder: \(reminder.title) => \(reminder.date), isSameDay? \(sameDay)")
             return sameDay
         }
         sortReminders()
         outputDelegate?.reloadData()
+    }
+
+    func isFocusedItemChanged(for indexPath: IndexPath) -> Bool {
+        if focusedItemIndexPath != indexPath {
+            focusedItemIndexPath = indexPath
+            return true
+        }
+        return false
+    }
+
+    func isIndexPathFocused(_ indexPath: IndexPath) -> Bool {
+        focusedItemIndexPath == indexPath ? true : false
     }
 }

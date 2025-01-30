@@ -19,7 +19,6 @@ final class HomeViewController: UIViewController {
 
     private var viewModel: HomeViewModel {
         didSet {
-
             reminderTableView.reloadData()
         }
     }
@@ -95,7 +94,7 @@ final class HomeViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         fetchReminders()
         configureView()
         topView.delegate = self
@@ -112,6 +111,7 @@ final class HomeViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         reminderTableView.layoutTableHeaderView()
+        self.reloadCollectionViewAndApproach()
     }
 }
 
@@ -168,19 +168,69 @@ private extension HomeViewController {
     func dateString(for index: Int) -> String {
         return dateManager.formatDate(dates[index])
     }
+
+    func updateFocusedDate() {
+        let centerPoint = CGPoint(x: dateCollectionView.bounds.midX, y: dateCollectionView.bounds.midY)
+
+        guard let centeredIndexPath = dateCollectionView.indexPathForItem(at: centerPoint) else { return }
+
+        let newSelectedDate = dates[centeredIndexPath.item]
+
+        if !dateManager.isSameDay(selectedDate, newSelectedDate) {
+            selectedDate = newSelectedDate
+            viewModel.updateFocusedDate(to: selectedDate)
+        }
+    }
+
+    func centerFocusedItem() {
+        guard let indexPath = dateCollectionView.indexPathForItem(at: CGPoint(x: dateCollectionView.bounds.midX, y: dateCollectionView.bounds.midY)) else { return }
+        dateCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
+    }
+
+
+    func updateCollectionViewCellStyles() {
+        for indexPath in dateCollectionView.indexPathsForVisibleItems {
+            guard let cell = dateCollectionView.cellForItem(at: indexPath) as? DateCell else { continue }
+
+            let viewCenter = dateCollectionView.bounds.midX
+            let cellCenter = cell.frame.midX
+
+            let halfItemWidth: CGFloat = dateCollectionView.bounds.width / 10
+            let maxDistance: CGFloat = dateCollectionView.frame.width / 2 + halfItemWidth
+            let currentDistance = abs(viewCenter - cellCenter)
+            let progress: CGFloat = max(0, min(1, 1 - currentDistance / maxDistance))
+
+            let alpha = max(0.4, progress)
+            let fontSize = progress * 10 + 8
+
+            let isFocused = dateManager.isSameDay(dates[indexPath.item], selectedDate)
+
+            cell.dateLabel.font = isFocused ? UIFont.systemFont(ofSize: fontSize, weight: .semibold) : UIFont.systemFont(ofSize: fontSize, weight: .regular)
+            cell.dateLabel.textColor = UIColor.label.withAlphaComponent(alpha)
+        }
+    }
+
+    func reloadCollectionViewAndApproach(from indexPath: IndexPath? = nil) {
+        dateCollectionView.reloadData()
+
+        if let indexPath {
+            dateCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
+        }
+        dateCollectionView.scrollToItem(at: viewModel.todayIndexPath, at: .centeredHorizontally, animated: true)
+    }
 }
 
 // MARK: - Objective Methods
 
 private extension HomeViewController {
-    @objc private func didTapAddButton() {
+    @objc func didTapAddButton() {
         let createVC = CreateViewController(initialDate: Date())
         createVC.modalPresentationStyle = .overFullScreen
         createVC.modalTransitionStyle = .crossDissolve
         present(createVC, animated: true, completion: nil)
     }
 
-    @objc private func handleNewReminderNotification(_ notification: Notification) {
+    @objc func handleNewReminderNotification(_ notification: Notification) {
         guard let reminder = notification.object as? Reminder else { return }
         viewModel.inputDelegate?.addReminder(reminder)
         reloadData()
@@ -193,7 +243,7 @@ extension HomeViewController: HomeViewModelOutputProtocol {
     func fetchReminders() {
         viewModel.fetchReminders()
     }
-    
+
     func updateRow(from oldIndex: Int, to newIndex: Int) {
         self.reminderTableView.moveRow(
             at: IndexPath(row: oldIndex, section: 0),
@@ -211,16 +261,22 @@ extension HomeViewController: HomeViewModelOutputProtocol {
 
 extension HomeViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel.reminders.count
+        let count = viewModel.reminders.count
+        if count == 0 {
+            // Show empty state
+            let emptyLabel = UILabel()
+            emptyLabel.text = "No reminders for this date."
+            emptyLabel.textAlignment = .center
+            emptyLabel.font = .systemFont(ofSize: 16)
+            tableView.backgroundView = emptyLabel
+        } else {
+            tableView.backgroundView = nil
+        }
+        return count
     }
 
-    func tableView(_ tableView: UITableView,
-                   cellForRowAt indexPath: IndexPath
-    ) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(
-            withIdentifier: ReminderCell.identifier,
-            for: indexPath
-        ) as? ReminderCell else {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: ReminderCell.identifier, for: indexPath) as? ReminderCell else {
             fatalError("Unable to dequeue ReminderCell")
         }
         let reminder = viewModel.reminders[indexPath.row]
@@ -232,16 +288,12 @@ extension HomeViewController: UITableViewDataSource {
 // MARK: - UITableViewDelegate
 
 extension HomeViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView,
-                   didSelectRowAt indexPath: IndexPath
-    ) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: false)
         viewModel.inputDelegate?.toggleReminder(at: indexPath.row)
     }
 
-    func tableView(_ tableView: UITableView,
-                   viewForHeaderInSection section: Int
-    ) -> UIView? {
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         if section == 0 {
             guard let headerView = tableView.dequeueReusableHeaderFooterView(
                 withIdentifier: HomeTopFooterView.identifier
@@ -294,8 +346,9 @@ extension HomeViewController: UICollectionViewDataSource {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DateCell.identifier, for: indexPath) as? DateCell else {
             fatalError("Unable to dequeue DateCell")
         }
-        let dateString = DateManager().formatDate(dates[indexPath.item])
-        cell.configure(with: dateString)
+        let date = dates[indexPath.item]
+        let formattedDate = dateManager.formatDate(date)
+        cell.configure(with: formattedDate)
         return cell
     }
 }
@@ -305,5 +358,26 @@ extension HomeViewController: UICollectionViewDataSource {
 extension HomeViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
+    }
+}
+
+// MARK: - UIScrollViewDelegate
+
+extension HomeViewController: UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if scrollView == dateCollectionView {
+            updateFocusedDate()
+            updateCollectionViewCellStyles()
+        }
+    }
+
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if !decelerate {
+            centerFocusedItem()
+        }
+    }
+
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        centerFocusedItem()
     }
 }

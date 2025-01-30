@@ -201,7 +201,7 @@ private extension HomeViewController {
             let progress: CGFloat = max(0, min(1, 1 - currentDistance / maxDistance))
 
             let alpha = max(0.4, progress)
-            let fontSize = progress * 10 + 8
+            let fontSize = progress * 10 + 12
 
             let isFocused = dateManager.isSameDay(dates[indexPath.item], selectedDate)
 
@@ -329,6 +329,10 @@ extension HomeViewController: HomeTopViewDelegate {
                 guard let self else { return }
                 self.selectedDate = date
                 self.viewModel.filterReminders(for: date)
+                if let index = self.dates.firstIndex(where: { self.dateManager.isSameDay($0, date) }) {
+                    let indexPath = IndexPath(item: index, section: 0)
+                    self.dateCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
+                }
                 dismiss(animated: true)
             }
         )

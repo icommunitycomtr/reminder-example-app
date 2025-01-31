@@ -11,7 +11,7 @@ A task management tool designed to help users create, manage, and track their re
 - [Technologies Used](#technologies-used)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Screenshots And Gifs](#screenshots-and-gifs)
+- [Screenshots](#screenshots)
 
 ---
 
@@ -156,7 +156,7 @@ This project uses multiple patterns to pass data and events between components:
 
 ---
 
- ## Screenshots And Gifs
+ ## Screenshots
 
 | Image 1                | Image 2                | Image 3                |
 |------------------------|------------------------|------------------------|
@@ -170,17 +170,10 @@ This project uses multiple patterns to pass data and events between components:
 
 | Image 7                | Image 8                | Image 9                |
 |------------------------|------------------------|------------------------|
-| ![]() | ![]() | ![]() |
-| Empty Home (Dark Mode)    | Home (Dark Mode)    | Add Reminder (Dark Mode)    |
+| ![dateHomeDark](https://github.com/user-attachments/assets/7f23fd27-0d70-4925-887e-7c274a876902) | ![dateAddDark](https://github.com/user-attachments/assets/9c121fcf-a4c2-4d61-b22f-5ee53fe6bf75) | ![hourAddDark](https://github.com/user-attachments/assets/ced37d16-cc8a-4c72-996d-5c0082df1b22) |
+| Date Picker Home (Dark Mode)    | Date Picker Add Reminder Day (Dark Mode)    | Date Picker Add Reminder Hour (Dark Mode)    |
 
 | Image 10                | Image 11                | Image 12                |
 |------------------------|------------------------|------------------------|
-| ![]() | ![]() | ![]() |
-| Empty Home (Light Mode)    | Home (Light Mode)    | Add Reminder (Light Mode)    |
-
-
-
-
-
-
-
+| ![dateHomeLight](https://github.com/user-attachments/assets/e02ca480-7d32-4fc8-81a4-67f618f4f657) | ![dateAddLight](https://github.com/user-attachments/assets/151befaf-5f84-4db5-8479-1ea47c755c5d) | ![hourAddLight](https://github.com/user-attachments/assets/bd0d0445-c2c2-4434-bbe1-3b5cc053aa6b) |
+| Date Picker Home (Light Mode)    | Date Picker Add Reminder Day (Light Mode)    | Date Picker Add Reminder Hour (Light Mode)    |
